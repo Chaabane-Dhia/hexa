@@ -1,16 +1,15 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { IUserRepository, IUserRepository as IUserRepositoryToken } from '../../domain/interfaces/user.repository.interface';
-import { CreateUserDto, UpdateUserDto } from '../../user.dto';
+import { CreateUserDto, UpdateUserDto } from '../../DTOs/user.dto';
 import { User } from '../../domain/entities/user.entity';
-import { UserResponseDto } from '../../user-response.dto';
+import { UserResponseDto } from '../../DTOs/user-response.dto';;
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UserService {
-  
-  constructor(  
+  constructor(
     @Inject(IUserRepositoryToken)
     private readonly userRepository: IUserRepository,
   ) {}
-
 
   private toResponse(user: User): UserResponseDto {
     return {
@@ -19,63 +18,41 @@ export class UserService {
       email: user.email,
     };
   }
-  
 
-  async createUser(createUserDto: CreateUserDto): Promise<{ id: string; name: string; email: string }> {
-    const user = await this.userRepository.createUser(createUserDto);
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    };
+  async createUser(createUserDto: CreateUserDto): Promise<UserResponseDto> {
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+      const user = await this.userRepository.createUser({
+        ...createUserDto,
+        password: hashedPassword,
+      });
+    return this.toResponse(user);
   }
-  
 
-  async getUserById(id: string): Promise<{ id: string; name: string; email: string } | null> {
+  async getUserById(id: string): Promise<UserResponseDto | null> {
     const user = await this.userRepository.findById(id);
-    if (!user) return null;
-  
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    };
+    return user ? this.toResponse(user) : null;
   }
-  
 
   async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
     const updatedUser = await this.userRepository.updateUser(id, updateUserDto);
-    console.log('Updated User (Service):', updatedUser);  // Log the updated user to check if id is included
+    if (!updatedUser) {throw new NotFoundException(`User with ID ${id} not found`);}
+      return {
+        id: updatedUser.id,  
+        name: updatedUser.name,
+        email: updatedUser.email,
+      };
+}
 
-    if (!updatedUser) {
-      throw new Error('User not found');
-    }
-
-    return {
-      id: updatedUser.id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-    };
-  }
-  
-  
-  
-  
-
-  async deleteUser(id: string): Promise<{ message: string, id: string }> {
+  async deleteUser(id: string): Promise<{ message: string; id: string }> {
     await this.userRepository.deleteUser(id);
-    return { message: 'User deleted successfully', id };  // Return success message and deleted user's id
+    return { message: 'User deleted successfully', id };
   }
 
-
-  async getAllUsers(): Promise<{ id: string; name: string; email: string }[]> {
-    const users = await this.userRepository.findAll();  // Assuming this method is available in your repository
-    return users.map(user => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    }));
+  async getAllUsers(): Promise<UserResponseDto[]> {
+    const users = await this.userRepository.findAll();
+    return users.map(this.toResponse);
   }
-  
-  
+  async findByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findByEmail(email);
+  }
 }

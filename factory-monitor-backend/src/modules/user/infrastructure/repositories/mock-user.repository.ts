@@ -22,24 +22,24 @@ export class MockUserRepository implements IUserRepository {
   }
 
   async updateUser(id: string, data: any): Promise<User> {
-  const index = this.users.findIndex(user => user.id === id);
-  if (index === -1) throw new Error('User not found');
+    const index = this.users.findIndex(user => user.id === id);
+    if (index === -1) throw new Error('User not found');
 
-  // Update user in memory
-  const updatedUser = { ...this.users[index], ...data };
-  this.users[index] = updatedUser;
+    const updatedUser = { ...this.users[index], ...data };
+    this.users[index] = updatedUser;
 
-  // Return the entire updated user object
-  return updatedUser as User;
-}
-
+    return updatedUser as User;
+  }
 
   async deleteUser(id: string): Promise<void> {
     this.users = this.users.filter(user => user.id !== id);
   }
 
   async findAll(): Promise<User[]> {
-    return this.users;  // Returning all users in the mock repository
+    return this.users;
+  }
+  async findByEmail(email: string): Promise<User | null> {
+    return this.users.find(user => user.email === email) || null;
   }
   
 }
