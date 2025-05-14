@@ -13,5 +13,5 @@ export class User extends Model {
   email: string;
 
   @Column
-  password: string;  // Add password for user authentication.
+  password: string;  
 }

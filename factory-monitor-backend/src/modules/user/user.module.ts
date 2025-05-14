@@ -10,10 +10,16 @@ import { UserController } from './user.controller';
   providers: [
     UserService,
     {
-      provide: IUserRepository, // Providing the interface
-      useClass: MockUserRepository, // Binding the interface to the concrete class
+      provide: IUserRepository, 
+      useClass: MockUserRepository, 
     },
   ],
-  exports: [UserService],
+  exports: [
+    UserService,
+    {
+      provide: IUserRepository,
+      useClass: MockUserRepository,
+    },
+  ],
 })
 export class UserModule {}
