@@ -1,10 +1,11 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { IUserRepository } from '../user/domain/interfaces/user.repository.interface';
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
-import { SignupDto, LoginDto } from './auth.dto';
-import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+import { IUserRepository } from '../user/domain/interfaces/user.repository.interface';
+import { SignupDto, LoginDto } from './auth.dto';
 import { AuthResponseDto } from './auth-response.dto';
+
 
 @Injectable()
 export class AuthService {
@@ -18,20 +19,31 @@ export class AuthService {
 
     const existingUser = await this.userRepository.findByEmail(email);
     if (existingUser) {
-      throw new Error('User already exists');
+      throw new BadRequestException('User already exists');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await this.userRepository.createUser({ name, email, password: hashedPassword });
+    const user = await this.userRepository.createUser({
+      name,
+      email,
+      password: hashedPassword,
+    });
 
     if (!user) {
-      throw new Error('User creation failed');
+      throw new BadRequestException('User creation failed');
     }
     
-    const payload = { sub: user.id, email: user.email };
-    const token = this.jwtService.sign(payload);
+    const token = this.jwtService.sign({
+      sub: user.id,
+      email: user.email,
+    });
 
-    return { id: user.id, name: user.name, email: user.email, token};
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      token,
+    };
   }
 
   async login(dto: LoginDto): Promise<AuthResponseDto> {

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { UserService } from './application/services/user.service';
-import { MockUserRepository } from './infrastructure/repositories/mock-user.repository';
+import { InMemoryUserRepository } from './infrastructure/repositories/in-memory-user.repository';
 import { IUserRepository } from './domain/interfaces/user.repository.interface';
 import { UserController } from './user.controller'; 
 
@@ -11,14 +11,14 @@ import { UserController } from './user.controller';
     UserService,
     {
       provide: IUserRepository, 
-      useClass: MockUserRepository, 
+      useClass: InMemoryUserRepository, 
     },
   ],
   exports: [
     UserService,
     {
       provide: IUserRepository,
-      useClass: MockUserRepository,
+      useClass: InMemoryUserRepository,
     },
   ],
 })

@@ -1,4 +1,4 @@
-import { IsString, IsUUID } from 'class-validator';
+import { IsString, IsUUID, IsEmail } from 'class-validator';
 
 export class AuthResponseDto {
   @IsUUID()
@@ -7,9 +7,9 @@ export class AuthResponseDto {
   @IsString()
   name: string;
 
-  @IsString()
+  @IsEmail()
   email: string;
 
   @IsString()
-  token: string; 
+  token: string;
 }

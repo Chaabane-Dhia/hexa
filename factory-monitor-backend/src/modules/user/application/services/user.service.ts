@@ -4,6 +4,9 @@ import { CreateUserDto, UpdateUserDto } from '../../DTOs/user.dto';
 import { User } from '../../domain/entities/user.entity';
 import { UserResponseDto } from '../../DTOs/user-response.dto';;
 import * as bcrypt from 'bcrypt';
+
+
+
 @Injectable()
 export class UserService {
   constructor(
@@ -19,13 +22,13 @@ export class UserService {
     };
   }
 
-  async createUser(createUserDto: CreateUserDto): Promise<UserResponseDto> {
+  async createUser(createUserDto: CreateUserDto): Promise<UserResponseDto | null> {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
       const user = await this.userRepository.createUser({
         ...createUserDto,
         password: hashedPassword,
       });
-    return this.toResponse(user);
+    return user ? this.toResponse(user) : null;
   }
 
   async getUserById(id: string): Promise<UserResponseDto | null> {
@@ -33,7 +36,7 @@ export class UserService {
     return user ? this.toResponse(user) : null;
   }
 
-  async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
+  async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<UserResponseDto | null> {
     const updatedUser = await this.userRepository.updateUser(id, updateUserDto);
     if (!updatedUser) {throw new NotFoundException(`User with ID ${id} not found`);}
       return {
@@ -43,10 +46,13 @@ export class UserService {
       };
 }
 
-  async deleteUser(id: string): Promise<{ message: string; id: string }> {
-    await this.userRepository.deleteUser(id);
-    return { message: 'User deleted successfully', id };
+  async deleteUser(id: string): Promise<{ message: string; id: string } | null> {
+  const deletedUser = await this.userRepository.deleteUser(id);
+  if (!deletedUser) {
+    throw new NotFoundException(`User with ID ${id} not found`);
   }
+  return { message: 'User deleted successfully', id: deletedUser.id };
+}
 
   async getAllUsers(): Promise<UserResponseDto[]> {
     const users = await this.userRepository.findAll();
