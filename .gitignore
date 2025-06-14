@@ -1,3 +1,17 @@
+# Next.js specific files (frontend)
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+
+# Nest.js specific files (backend)
+backend/dist/ # Nest.js compiled output
+backend/node_modules/
+
+# General project ignored files
+.env
+*.log
+# ... other common ignores as in the Canvas document
+
 # Next.js specific files
 .next/ # Next.js build output
 out/ # Static export output (if using `next export`)
