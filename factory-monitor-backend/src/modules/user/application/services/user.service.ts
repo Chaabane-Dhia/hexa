@@ -5,8 +5,6 @@ import { User } from '../../domain/entities/user.entity';
 import { UserResponseDto } from '../../DTOs/user-response.dto';;
 import * as bcrypt from 'bcrypt';
 
-
-
 @Injectable()
 export class UserService {
   constructor(
@@ -44,7 +42,7 @@ export class UserService {
         name: updatedUser.name,
         email: updatedUser.email,
       };
-}
+  }
 
   async deleteUser(id: string): Promise<{ message: string; id: string } | null> {
   const deletedUser = await this.userRepository.deleteUser(id);
@@ -52,12 +50,17 @@ export class UserService {
     throw new NotFoundException(`User with ID ${id} not found`);
   }
   return { message: 'User deleted successfully', id: deletedUser.id };
-}
+  }
 
   async getAllUsers(): Promise<UserResponseDto[]> {
     const users = await this.userRepository.findAll();
     return users.map(this.toResponse);
   }
+
+  async findById(id: string): Promise<User | null> {
+    return this.userRepository.findById(id);
+  }
+  
   async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findByEmail(email);
   }
